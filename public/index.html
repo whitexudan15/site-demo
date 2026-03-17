@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SecureBank — Votre banque en ligne</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --black: #0a0a0a;
+            --white: #f5f2eb;
+            --accent: #c8f04a;
+            --accent2: #4af0c8;
+            --gray: #1a1a1a;
+            --muted: #555;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--black);
+            color: var(--white);
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 300;
+            overflow-x: hidden;
+        }
+
+        /* NOISE OVERLAY */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.4;
+        }
+
+        /* NAV */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 3rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(12px);
+            background: rgba(10, 10, 10, 0.7);
+        }
+
+        .logo {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.3rem;
+            letter-spacing: -0.02em;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2.5rem;
+        }
+
+        nav ul a {
+            color: rgba(245, 242, 235, 0.6);
+            text-decoration: none;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            transition: color 0.2s;
+        }
+
+        nav ul a:hover {
+            color: var(--white);
+        }
+
+        .nav-cta {
+            background: var(--accent);
+            color: var(--black) !important;
+            padding: 0.5rem 1.2rem;
+            border-radius: 2px;
+            font-weight: 400 !important;
+        }
+
+        /* HERO */
+        .hero {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+            padding: 8rem 3rem 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: -200px;
+            right: -200px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(200, 240, 74, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-left {
+            max-width: 560px;
+        }
+
+        .hero-tag {
+            display: inline-block;
+            border: 1px solid rgba(200, 240, 74, 0.4);
+            color: var(--accent);
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 0.3rem 0.8rem;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: clamp(1.8rem, 3vw, 2.8rem);
+            line-height: 1.0;
+            letter-spacing: -0.03em;
+            margin-bottom: 1.5rem;
+            animation: slideUp 0.8s ease forwards;
+        }
+
+        h1 .highlight {
+            color: var(--accent);
+            font-style: italic;
+        }
+
+        .hero-desc {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: rgba(245, 242, 235, 0.55);
+            max-width: 420px;
+            margin-bottom: 2.5rem;
+            animation: slideUp 0.9s ease forwards;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            animation: slideUp 1s ease forwards;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: var(--black);
+            padding: 0.85rem 2rem;
+            border: none;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 400;
+            letter-spacing: 0.02em;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(200, 240, 74, 0.3);
+        }
+
+        .btn-secondary {
+            color: var(--white);
+            text-decoration: none;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 2px;
+            transition: border-color 0.2s;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--white);
+        }
+
+        /* HERO RIGHT — STATS CARD */
+        .hero-right {
+            display: flex;
+            justify-content: flex-end;
+            animation: fadeIn 1.2s ease forwards;
+        }
+
+        .stats-card {
+            background: var(--gray);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 2.5rem;
+            width: 320px;
+            position: relative;
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+        }
+
+        .card-label {
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-value {
+            font-family: 'Syne', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+        }
+
+        .card-value.green {
+            color: var(--accent);
+        }
+
+        .card-value.teal {
+            color: var(--accent2);
+        }
+
+        .card-divider {
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            margin: 1rem 0;
+        }
+
+        /* FEATURES */
+        .features {
+            padding: 6rem 3rem;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            background: rgba(255, 255, 255, 0.06);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .feature {
+            background: var(--black);
+            padding: 3rem 2.5rem;
+            transition: background 0.3s;
+        }
+
+        .feature:hover {
+            background: var(--gray);
+        }
+
+        .feature-icon {
+            font-size: 1.8rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .feature h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+            letter-spacing: -0.01em;
+        }
+
+        .feature p {
+            font-size: 0.9rem;
+            line-height: 1.7;
+            color: rgba(245, 242, 235, 0.5);
+        }
+
+        /* FOOTER */
+        footer {
+            padding: 2rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        /* ANIMATIONS */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="logo">Secure<span>Bank</span></div>
+        <ul>
+            <li><a href="#">Comptes</a></li>
+            <li><a href="#">Épargne</a></li>
+            <li><a href="#">Crédit</a></li>
+            <li><a href="login.html" class="nav-cta">Connexion</a></li>
+        </ul>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-left">
+            <div class="hero-tag">🔒 Banque 100% sécurisée</div>
+            <h1>La banque qui <span class="highlight">protège</span> votre avenir</h1>
+            <p class="hero-desc">
+                Gérez vos finances en toute sécurité. Virements instantanés,
+                épargne intelligente, et protection maximale de vos données.
+            </p>
+            <div class="hero-actions">
+                <a href="register.html" class="btn-primary">Ouvrir un compte</a>
+                <a href="search.html" class="btn-secondary">Rechercher une transaction →</a>
+            </div>
+        </div>
+        <div class="hero-right">
+            <div class="stats-card">
+                <div class="card-label">Solde disponible</div>
+                <div class="card-value green">12 480,00 €</div>
+                <hr class="card-divider">
+                <div class="card-label">Transactions ce mois</div>
+                <div class="card-value teal">+247</div>
+                <hr class="card-divider">
+                <div class="card-label">Sécurité du compte</div>
+                <div class="card-value" style="font-size:1rem; color: rgba(245,242,235,0.7);">
+                    ✅ Aucune activité suspecte
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="feature">
+            <div class="feature-icon">⚡</div>
+            <h3>Virements instantanés</h3>
+            <p>Envoyez de l'argent en quelques secondes, 24h/24 et 7j/7 partout dans le monde.</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">🛡️</div>
+            <h3>Sécurité avancée</h3>
+            <p>Authentification à deux facteurs, chiffrement bout-en-bout et détection de fraude en temps réel.</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">📊</div>
+            <h3>Analyse intelligente</h3>
+            <p>Visualisez vos dépenses, fixez des objectifs et optimisez votre épargne automatiquement.</p>
+        </div>
+    </section>
+
+    <footer>
+        <span>© 2025 SecureBank — Site de démonstration IDS</span>
+        <span>Connecté via <a href="#">Cloudflare</a></span>
+    </footer>
+
+</body>
+
+</html>

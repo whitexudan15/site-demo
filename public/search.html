@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SecureBank — Recherche de transactions</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --black: #0a0a0a;
+            --white: #f5f2eb;
+            --accent: #c8f04a;
+            --accent2: #4af0c8;
+            --gray: #1a1a1a;
+            --gray2: #222;
+            --border: rgba(255, 255, 255, 0.07);
+            --muted: rgba(245, 242, 235, 0.4);
+        }
+
+        body {
+            background: var(--black);
+            color: var(--white);
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 300;
+            min-height: 100vh;
+        }
+
+        /* NAV */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 3rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.3rem;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        nav a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color 0.2s;
+        }
+
+        nav a:hover {
+            color: var(--white);
+        }
+
+        /* MAIN */
+        main {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        .page-header {
+            margin-bottom: 3rem;
+            animation: slideUp 0.5s ease forwards;
+        }
+
+        .page-tag {
+            display: inline-block;
+            border: 1px solid rgba(74, 240, 200, 0.3);
+            color: var(--accent2);
+            font-size: 0.72rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 0.25rem 0.7rem;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-desc {
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+
+        /* SEARCH BOX */
+        .search-box {
+            display: flex;
+            gap: 0;
+            margin-bottom: 2rem;
+            animation: slideUp 0.6s ease forwards;
+        }
+
+        .search-box input {
+            flex: 1;
+            background: var(--gray);
+            border: 1px solid var(--border);
+            border-right: none;
+            color: var(--white);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            padding: 0.9rem 1.2rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--accent2);
+        }
+
+        .search-box input::placeholder {
+            color: rgba(245, 242, 235, 0.2);
+        }
+
+        .search-box button {
+            background: var(--accent2);
+            color: var(--black);
+            border: none;
+            padding: 0.9rem 1.8rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .search-box button:hover {
+            opacity: 0.85;
+        }
+
+        /* FILTERS */
+        .filters {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.78rem;
+            padding: 0.35rem 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.04em;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: var(--gray);
+            color: var(--white);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* RESULTS */
+        #results {
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        .result-header {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .transaction {
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            align-items: center;
+            gap: 1.2rem;
+            padding: 1rem 1.2rem;
+            background: var(--gray);
+            border: 1px solid var(--border);
+            margin-bottom: 1px;
+            transition: background 0.2s;
+        }
+
+        .transaction:hover {
+            background: var(--gray2);
+        }
+
+        .tx-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .tx-icon.in {
+            background: rgba(200, 240, 74, 0.1);
+        }
+
+        .tx-icon.out {
+            background: rgba(255, 100, 100, 0.1);
+        }
+
+        .tx-label {
+            font-size: 0.9rem;
+        }
+
+        .tx-date {
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-top: 0.1rem;
+        }
+
+        .tx-category {
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--muted);
+            background: rgba(255, 255, 255, 0.04);
+            padding: 0.2rem 0.6rem;
+            border: 1px solid var(--border);
+        }
+
+        .tx-amount {
+            font-family: 'Syne', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .tx-amount.in {
+            color: var(--accent);
+        }
+
+        .tx-amount.out {
+            color: #ff9090;
+        }
+
+        .alert-box {
+            background: rgba(255, 80, 80, 0.08);
+            border: 1px solid rgba(255, 80, 80, 0.25);
+            padding: 1rem 1.2rem;
+            font-size: 0.85rem;
+            color: #ff9090;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="logo">Secure<span>Bank</span></div>
+        <a href="index.html">← Retour à l'accueil</a>
+    </nav>
+
+    <main>
+        <div class="page-header">
+            <div class="page-tag">Espace client</div>
+            <h1>Mes transactions</h1>
+            <p class="page-desc">Recherchez et filtrez l'historique de vos opérations bancaires.</p>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Rechercher une transaction, un bénéficiaire..." />
+            <button onclick="handleSearch()">Rechercher</button>
+        </div>
+
+        <div class="filters">
+            <button class="filter-btn active" onclick="setFilter(this, 'all')">Tout</button>
+            <button class="filter-btn" onclick="setFilter(this, 'in')">Entrées</button>
+            <button class="filter-btn" onclick="setFilter(this, 'out')">Sorties</button>
+            <button class="filter-btn" onclick="setFilter(this, 'virement')">Virements</button>
+            <button class="filter-btn" onclick="setFilter(this, 'paiement')">Paiements</button>
+        </div>
+
+        <div id="alert" class="alert-box"></div>
+
+        <div id="results">
+            <div class="result-header">Résultats récents — 5 transactions</div>
+
+            <div class="transaction">
+                <div class="tx-icon in">↓</div>
+                <div>
+                    <div class="tx-label">Virement reçu — Entreprise Martin</div>
+                    <div class="tx-date">15 mars 2025</div>
+                </div>
+                <div class="tx-category">Virement</div>
+                <div class="tx-amount in">+3 200,00 €</div>
+            </div>
+
+            <div class="transaction">
+                <div class="tx-icon out">↑</div>
+                <div>
+                    <div class="tx-label">Loyer Appartement Paris 11e</div>
+                    <div class="tx-date">01 mars 2025</div>
+                </div>
+                <div class="tx-category">Paiement</div>
+                <div class="tx-amount out">-950,00 €</div>
+            </div>
+
+            <div class="transaction">
+                <div class="tx-icon out">↑</div>
+                <div>
+                    <div class="tx-label">Amazon — Commande #112-334</div>
+                    <div class="tx-date">28 fév. 2025</div>
+                </div>
+                <div class="tx-category">Paiement</div>
+                <div class="tx-amount out">-89,99 €</div>
+            </div>
+
+            <div class="transaction">
+                <div class="tx-icon in">↓</div>
+                <div>
+                    <div class="tx-label">Remboursement Assurance Santé</div>
+                    <div class="tx-date">22 fév. 2025</div>
+                </div>
+                <div class="tx-category">Virement</div>
+                <div class="tx-amount in">+126,40 €</div>
+            </div>
+
+            <div class="transaction">
+                <div class="tx-icon out">↑</div>
+                <div>
+                    <div class="tx-label">Carrefour — Courses semaine</div>
+                    <div class="tx-date">20 fév. 2025</div>
+                </div>
+                <div class="tx-category">Paiement</div>
+                <div class="tx-amount out">-67,30 €</div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        async function handleSearch() {
+            const query = document.getElementById('searchInput').value;
+            const alertEl = document.getElementById('alert');
+            const results = document.getElementById('results');
+
+            alertEl.style.display = 'none';
+            results.innerHTML = '<div class="result-header">Chargement...</div>';
+
+            try {
+                const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+                const data = await res.json();
+
+                if (!res.ok) {
+                    // Erreur SQL renvoyée par le serveur (effet SQLi visible !)
+                    alertEl.style.display = 'block';
+                    alertEl.innerHTML = `
+            💥 <strong>Erreur SQL détectée :</strong><br>
+            <code>${escapeHtml(data.error)}</code><br><br>
+            <small>Requête injectée : <code>${escapeHtml(data.query)}</code></small>
+          `;
+                    results.innerHTML = '';
+                    return;
+                }
+
+                // Affiche la requête SQL exécutée (pour voir l'injection en direct)
+                const sqlBlock = `
+          <div style="
+            background:#111; border:1px solid rgba(200,240,74,0.2);
+            padding:0.7rem 1rem; margin-bottom:1rem;
+            font-size:0.78rem; font-family:monospace; color:rgba(200,240,74,0.8);
+          ">
+            <span style="color:#555;">SQL exécuté → </span>${escapeHtml(data.sql_executed)}
+          </div>
+        `;
+
+                if (data.results.length === 0) {
+                    results.innerHTML = sqlBlock + `<div class="result-header">Aucune transaction trouvée pour "${escapeHtml(query)}"</div>`;
+                    return;
+                }
+
+                const rows = data.results.map(tx => `
+          <div class="transaction">
+            <div class="tx-icon ${tx.type}">${tx.type === 'in' ? '↓' : '↑'}</div>
+            <div>
+              <div class="tx-label">${escapeHtml(tx.label)}</div>
+              <div class="tx-date">${escapeHtml(tx.date)}</div>
+            </div>
+            <div class="tx-category">${escapeHtml(tx.category)}</div>
+            <div class="tx-amount ${tx.type}">
+              ${tx.type === 'in' ? '+' : '-'}${Math.abs(tx.amount).toFixed(2)} €
+            </div>
+          </div>
+        `).join('');
+
+                results.innerHTML = sqlBlock +
+                    `<div class="result-header">${data.count} résultat(s) pour "${escapeHtml(query)}"</div>` +
+                    rows;
+
+            } catch (err) {
+                alertEl.style.display = 'block';
+                alertEl.innerHTML = `❌ Erreur réseau : ${err.message}`;
+                results.innerHTML = '';
+            }
+        }
+
+        function setFilter(btn, type) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        document.getElementById('searchInput').addEventListener('keydown', e => {
+            if (e.key === 'Enter') handleSearch();
+        });
+
+        // Chargement initial — affiche toutes les transactions
+        handleSearch();
+    </script>
+
+</body>
+
+</html>
