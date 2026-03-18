@@ -9,6 +9,7 @@ cd site-demo
 npm install
 npm start
 # → http://localhost:3002
+# https://site-demo-n1mo.onrender.com:3002
 ```
 
 ## Changer le port
@@ -16,6 +17,7 @@ npm start
 ```bash
 PORT=4000 node server.js
 # → http://localhost:4000
+# https://site-demo-n1mo.onrender.com:4000
 ```
 
 ## Structure de la base SQLite
