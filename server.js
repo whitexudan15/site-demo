@@ -249,6 +249,21 @@ app.get('/api/stats', (req, res) => {
     res.json({ totalLogs, sqliCount, bruteforceCount: bfCount, topIPs });
 });
 
+
+/**
+ * DELETE /api/reset-logs
+ * Vide la table logs pour repartir proprement
+ */
+app.delete('/api/reset-logs', (req, res) => {
+    try {
+        db.prepare('DELETE FROM logs').run();
+        const count = db.prepare('SELECT COUNT(*) as c FROM logs').get().c;
+        res.json({ success: true, message: 'Logs vidés', remaining: count });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 // ─── DÉMARRAGE ─────────────────────────────────────────────
 app.listen(PORT, () => {
     console.log('');
