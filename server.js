@@ -89,8 +89,39 @@ async function sendToGuardian(event) {
 
 // ─── PATTERNS SQLi/XSS ─────────────────────────────────────
 const WAF_PATTERNS = [
-    "' OR", "OR 1=1", "--", "DROP TABLE", "UNION SELECT",
-    "<script>", "alert(", "../etc", "SLEEP(", "BENCHMARK("
+    // SQLi
+    "' OR", "OR 1=1", "' AND", "AND 1=1", "AND 1=2",
+    "--", "/*",
+    "UNION SELECT", "UNION ALL SELECT",
+    "SELECT * FROM", "SELECT 1 FROM",
+    "INSERT INTO", "UPDATE SET", "DELETE FROM",
+    "DROP TABLE", "DROP DATABASE", "TRUNCATE TABLE",
+    "EXEC(", "EXECUTE(", "xp_cmdshell",
+    "SLEEP(", "BENCHMARK(", "WAITFOR DELAY",
+    "INFORMATION_SCHEMA", "INTO OUTFILE",
+    "GROUP_CONCAT(", "@@VERSION",
+    // XSS
+    "<script", "javascript:", "onerror=", "onload=",
+    "onclick=", "onmouseover=",
+    "alert(", "confirm(",
+    "document.cookie", "document.write",
+    "eval(", "<iframe", "<svg",
+    "vbscript:", "expression(",
+    // Path Traversal
+    "../", "..\\", "..%2f", "..%5c",
+    "/etc/passwd", "/etc/shadow", "/proc/self",
+    "C:\\Windows", "%00",
+    // Command Injection
+    "; ls", "; cat", "; id", "; whoami",
+    "| ls", "| cat", "| id", "| whoami",
+    "`id`", "`whoami`", "$(id)", "$(whoami)",
+    "/bin/sh", "/bin/bash", "cmd.exe", "powershell",
+    // SSTI
+    "{{7*7}}", "${7*7}", "__class__", "__import__", "__mro__",
+    // XXE
+    "<!ENTITY", "<!DOCTYPE", "<?xml",
+    // LFI
+    "php://", "file://", "phar://", "expect://", "zip://",
 ];
 
 function detectWafPattern(text) {
@@ -100,8 +131,13 @@ function detectWafPattern(text) {
 }
 
 const BOT_AGENTS = [
-    "curl", "python-requests", "wget", "scrapy",
-    "httpclient", "go-http", "libwww", "nmap"
+    "nmap", "nikto", "sqlmap", "masscan", "nessus",
+    "curl", "wget", "python-requests", "python-urllib",
+    "scrapy", "selenium", "puppeteer", "playwright",
+    "gobuster", "ffuf", "wfuzz", "dirb", "nuclei",
+    "acunetix", "burpsuite", "hydra", "medusa",
+    "libwww", "go-http-client", "zgrab", "dirbuster",
+    "httpie", "httpclient", "okhttp", "lwp-trivial",
 ];
 
 function detectBot(userAgent) {
@@ -124,10 +160,19 @@ app.use((req, res, next) => {
         sendToGuardian({ type: 'bot', ip, country, path: req.path, userAgent, timestamp: Date.now() });
     }
 
-    const toCheck = [req.query.q, req.body?.email, req.body?.password, req.body?.name, req.path].join(' ');
+    const toCheck = [
+        req.query.q, req.body?.email, req.body?.password,
+        req.body?.name, req.body?.label
+    ].filter(Boolean).join(' ');
+
     const pattern = detectWafPattern(toCheck);
     if (pattern) {
-        sendToGuardian({ type: 'waf', ip, country, path: req.path, pattern, payload: toCheck.slice(0, 200), timestamp: Date.now() });
+        sendToGuardian({
+            type: 'waf', ip, country,
+            path: req.path, pattern,
+            payload: `${toCheck.slice(0, 200)}    ${req.path}`,
+            timestamp: Date.now()
+        });
     }
 
     sendToGuardian({ type: 'request', ip, country, path: req.path, method: req.method, userAgent, timestamp: Date.now() });
@@ -137,9 +182,27 @@ app.use((req, res, next) => {
 // ─── ROUTES ────────────────────────────────────────────────
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
+    const ip = req.headers['cf-connecting-ip']
+        || req.headers['x-forwarded-for']
+        || req.socket.remoteAddress
+        || 'unknown';
+    const country = req.headers['cf-ipcountry'] || 'XX';
+
     const user = db.prepare('SELECT * FROM users WHERE email = ? AND password = ?').get(email, password);
+
+    // Notifier Python du résultat
+    sendToGuardian({
+        type: 'login',
+        ip,
+        country,
+        path: '/api/login',
+        email,
+        success: !!user,
+        timestamp: Date.now()
+    });
+
     if (user) {
         res.json({ success: true, message: `Bienvenue, ${user.name} !`, userId: user.id, userName: user.name });
     } else {
