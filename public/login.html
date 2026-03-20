@@ -1,377 +1,232 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SecureBank — Connexion</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap"
-        rel="stylesheet">
-    <style>
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        :root {
-            --black: #0a0a0a;
-            --white: #f5f2eb;
-            --accent: #c8f04a;
-            --gray: #1a1a1a;
-            --border: rgba(255, 255, 255, 0.08);
-            --muted: rgba(245, 242, 235, 0.4);
-        }
-
-        body {
-            background: var(--black);
-            color: var(--white);
-            font-family: 'DM Sans', sans-serif;
-            font-weight: 300;
-            min-height: 100vh;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-        }
-
-        /* LEFT PANEL */
-        .left-panel {
-            background: var(--gray);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 3rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .left-panel::before {
-            content: '';
-            position: absolute;
-            bottom: -100px;
-            left: -100px;
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(200, 240, 74, 0.07) 0%, transparent 70%);
-        }
-
-        .logo {
-            font-family: 'Syne', sans-serif;
-            font-weight: 800;
-            font-size: 1.4rem;
-            letter-spacing: -0.02em;
-        }
-
-        .logo span {
-            color: var(--accent);
-        }
-
-        .panel-content {
-            z-index: 1;
-        }
-
-        .panel-content h2 {
-            font-family: 'Syne', sans-serif;
-            font-size: clamp(1.8rem, 3vw, 2.8rem);
-            font-weight: 800;
-            line-height: 1.1;
-            letter-spacing: -0.03em;
-            margin-bottom: 1rem;
-        }
-
-        .panel-content p {
-            font-size: 0.95rem;
-            line-height: 1.7;
-            color: var(--muted);
-            max-width: 320px;
-        }
-
-        .security-badges {
-            display: flex;
-            flex-direction: column;
-            gap: 0.8rem;
-        }
-
-        .badge {
-            display: flex;
-            align-items: center;
-            gap: 0.7rem;
-            font-size: 0.82rem;
-            color: var(--muted);
-        }
-
-        .badge-dot {
-            width: 6px;
-            height: 6px;
-            background: var(--accent);
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        /* RIGHT PANEL — FORM */
-        .right-panel {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 3rem;
-        }
-
-        .form-container {
-            width: 100%;
-            max-width: 380px;
-            animation: slideUp 0.6s ease forwards;
-        }
-
-        .form-header {
-            margin-bottom: 2.5rem;
-        }
-
-        .form-header h3 {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.6rem;
-            font-weight: 700;
-            margin-bottom: 0.4rem;
-            letter-spacing: -0.02em;
-        }
-
-        .form-header p {
-            font-size: 0.85rem;
-            color: var(--muted);
-        }
-
-        .form-group {
-            margin-bottom: 1.2rem;
-        }
-
-        label {
-            display: block;
-            font-size: 0.78rem;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            color: var(--muted);
-            margin-bottom: 0.5rem;
-        }
-
-        input {
-            width: 100%;
-            background: var(--gray);
-            border: 1px solid var(--border);
-            color: var(--white);
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 300;
-            padding: 0.85rem 1rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        input:focus {
-            border-color: var(--accent);
-        }
-
-        input::placeholder {
-            color: rgba(245, 242, 235, 0.25);
-        }
-
-        .form-options {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.8rem;
-            font-size: 0.82rem;
-        }
-
-        .remember {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--muted);
-            cursor: pointer;
-        }
-
-        .remember input[type="checkbox"] {
-            width: auto;
-            accent-color: var(--accent);
-        }
-
-        .forgot {
-            color: var(--accent);
-            text-decoration: none;
-            font-size: 0.82rem;
-        }
-
-        .btn-submit {
-            width: 100%;
-            background: var(--accent);
-            color: var(--black);
-            border: none;
-            padding: 1rem;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.95rem;
-            cursor: pointer;
-            letter-spacing: 0.02em;
-            transition: box-shadow 0.2s, transform 0.2s;
-        }
-
-        .btn-submit:hover {
-            box-shadow: 0 8px 30px rgba(200, 240, 74, 0.3);
-            transform: translateY(-1px);
-        }
-
-        .form-footer {
-            margin-top: 1.5rem;
-            text-align: center;
-            font-size: 0.82rem;
-            color: var(--muted);
-        }
-
-        .form-footer a {
-            color: var(--white);
-            text-decoration: none;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        /* MESSAGE */
-        #msg {
-            margin-top: 1rem;
-            padding: 0.7rem 1rem;
-            font-size: 0.82rem;
-            display: none;
-        }
-
-        #msg.error {
-            background: rgba(255, 80, 80, 0.1);
-            border: 1px solid rgba(255, 80, 80, 0.3);
-            color: #ff9090;
-        }
-
-        #msg.success {
-            background: rgba(200, 240, 74, 0.1);
-            border: 1px solid rgba(200, 240, 74, 0.3);
-            color: var(--accent);
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(16px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SecureBank — Connexion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --black: #0a0a0a; --white: #f5f2eb; --accent: #c8f04a;
+      --gray: #1a1a1a; --border: rgba(255,255,255,0.08); --muted: rgba(245,242,235,0.4);
+    }
+    body {
+      background: var(--black); color: var(--white);
+      font-family: 'DM Sans', sans-serif; font-weight: 300;
+      min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr;
+    }
+    /* LEFT */
+    .left-panel {
+      background: var(--gray); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; justify-content: space-between;
+      padding: 3rem; position: relative; overflow: hidden;
+    }
+    .left-panel::before {
+      content: ''; position: absolute; bottom: -100px; left: -100px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(200,240,74,0.07) 0%, transparent 70%);
+    }
+    .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.4rem; }
+    .logo span { color: var(--accent); }
+    .panel-content { z-index: 1; }
+    .panel-content h2 {
+      font-family: 'Syne', sans-serif; font-size: clamp(1.8rem,3vw,2.8rem);
+      font-weight: 800; line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 1rem;
+    }
+    .panel-content p { font-size: 0.95rem; line-height: 1.7; color: var(--muted); max-width: 320px; }
+    .security-badges { display: flex; flex-direction: column; gap: 0.8rem; }
+    .badge { display: flex; align-items: center; gap: 0.7rem; font-size: 0.82rem; color: var(--muted); }
+    .badge-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; flex-shrink: 0; }
+    /* DEMO HINT */
+    .demo-hint {
+      background: rgba(200,240,74,0.06); border: 1px solid rgba(200,240,74,0.2);
+      padding: 1rem 1.2rem; margin-top: 1.5rem;
+    }
+    .demo-hint-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 0.6rem; }
+    .demo-account {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.4rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer;
+      transition: all 0.2s;
+    }
+    .demo-account:last-child { border-bottom: none; }
+    .demo-account:hover { opacity: 0.7; }
+    .demo-account-name { font-size: 0.82rem; color: var(--white); }
+    .demo-account-email { font-size: 0.75rem; color: var(--muted); }
+    .demo-fill { font-size: 0.72rem; color: var(--accent); letter-spacing: 0.05em; }
+    /* RIGHT */
+    .right-panel { display: flex; align-items: center; justify-content: center; padding: 3rem; }
+    .form-container { width: 100%; max-width: 380px; animation: slideUp 0.6s ease forwards; }
+    .form-header { margin-bottom: 2.5rem; }
+    .form-header h3 {
+      font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 700;
+      margin-bottom: 0.4rem; letter-spacing: -0.02em;
+    }
+    .form-header p { font-size: 0.85rem; color: var(--muted); }
+    .form-group { margin-bottom: 1.2rem; position: relative; }
+    label { display: block; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
+    input {
+      width: 100%; background: var(--gray); border: 1px solid var(--border);
+      color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
+      font-weight: 300; padding: 0.85rem 1rem; outline: none; transition: border-color 0.2s;
+    }
+    input:focus { border-color: var(--accent); }
+    input::placeholder { color: rgba(245,242,235,0.25); }
+    input.error-input { border-color: rgba(255,80,80,0.5); }
+    input.success-input { border-color: rgba(200,240,74,0.4); }
+    .form-options {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1.8rem; font-size: 0.82rem;
+    }
+    .remember { display: flex; align-items: center; gap: 0.5rem; color: var(--muted); cursor: pointer; }
+    .remember input[type="checkbox"] { width: auto; accent-color: var(--accent); }
+    .forgot { color: var(--accent); text-decoration: none; font-size: 0.82rem; }
+    .btn-submit {
+      width: 100%; background: var(--accent); color: var(--black); border: none;
+      padding: 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
+      cursor: pointer; letter-spacing: 0.02em; transition: box-shadow 0.2s, transform 0.2s, opacity 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .btn-submit:hover:not(:disabled) { box-shadow: 0 8px 30px rgba(200,240,74,0.3); transform: translateY(-1px); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .btn-submit .spinner {
+      display: none; width: 16px; height: 16px; border: 2px solid rgba(10,10,10,0.3);
+      border-top-color: var(--black); border-radius: 50%;
+      animation: spin 0.6s linear infinite; margin: 0 auto;
+    }
+    .btn-submit.loading .btn-text { display: none; }
+    .btn-submit.loading .spinner { display: block; }
+    .form-footer { margin-top: 1.5rem; text-align: center; font-size: 0.82rem; color: var(--muted); }
+    .form-footer a { color: var(--white); text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.3); }
+    #msg {
+      margin-top: 1rem; padding: 0.7rem 1rem; font-size: 0.82rem;
+      display: none; animation: fadeIn 0.3s ease;
+    }
+    #msg.error { background: rgba(255,80,80,0.1); border: 1px solid rgba(255,80,80,0.3); color: #ff9090; }
+    #msg.success { background: rgba(200,240,74,0.1); border: 1px solid rgba(200,240,74,0.3); color: var(--accent); }
+    @keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeIn  { from { opacity:0; } to { opacity:1; } }
+    @keyframes spin    { to { transform: rotate(360deg); } }
+  </style>
 </head>
-
 <body>
-
-    <div class="left-panel">
-        <div class="logo">Secure<span>Bank</span></div>
-        <div class="panel-content">
-            <h2>Bienvenue sur votre espace sécurisé</h2>
-            <p>Accédez à vos comptes, suivez vos transactions et gérez votre épargne en toute confiance.</p>
+  <div class="left-panel">
+    <div class="logo">Secure<span>Bank</span></div>
+    <div class="panel-content">
+      <h2>Bienvenue sur votre espace sécurisé</h2>
+      <p>Accédez à vos comptes, suivez vos transactions et gérez votre épargne en toute confiance.</p>
+      <div class="demo-hint">
+        <div class="demo-hint-title">🧪 Comptes de démonstration</div>
+        <div class="demo-account" onclick="fillLogin('admin@securebank.fr','Admin1234!')">
+          <div><div class="demo-account-name">Administrateur</div><div class="demo-account-email">admin@securebank.fr</div></div>
+          <span class="demo-fill">Remplir →</span>
         </div>
-        <div class="security-badges">
-            <div class="badge">
-                <div class="badge-dot"></div>Chiffrement TLS 1.3
-            </div>
-            <div class="badge">
-                <div class="badge-dot"></div>Authentification 2 facteurs
-            </div>
-            <div class="badge">
-                <div class="badge-dot"></div>Détection d'intrusion active
-            </div>
-            <div class="badge">
-                <div class="badge-dot"></div>Protection Cloudflare
-            </div>
+        <div class="demo-account" onclick="fillLogin('alice@example.com','Alice5678!')">
+          <div><div class="demo-account-name">Alice Martin</div><div class="demo-account-email">alice@example.com</div></div>
+          <span class="demo-fill">Remplir →</span>
         </div>
+        <div class="demo-account" onclick="fillLogin('bob@example.com','Bob9012!')">
+          <div><div class="demo-account-name">Bob Dupont</div><div class="demo-account-email">bob@example.com</div></div>
+          <span class="demo-fill">Remplir →</span>
+        </div>
+      </div>
     </div>
-
-    <div class="right-panel">
-        <div class="form-container">
-            <div class="form-header">
-                <h3>Connexion</h3>
-                <p>Entrez vos identifiants pour accéder à votre compte.</p>
-            </div>
-
-            <div class="form-group">
-                <label for="email">Adresse e-mail</label>
-                <input type="email" id="email" placeholder="vous@example.com" />
-            </div>
-
-            <div class="form-group">
-                <label for="password">Mot de passe</label>
-                <input type="password" id="password" placeholder="••••••••••" />
-            </div>
-
-            <div class="form-options">
-                <label class="remember">
-                    <input type="checkbox"> Se souvenir de moi
-                </label>
-                <a href="#" class="forgot">Mot de passe oublié ?</a>
-            </div>
-
-            <button class="btn-submit" onclick="handleLogin()">Se connecter</button>
-
-            <div id="msg"></div>
-
-            <div class="form-footer">
-                Pas encore de compte ? <a href="register.html">Ouvrir un compte</a>
-            </div>
-        </div>
+    <div class="security-badges">
+      <div class="badge"><div class="badge-dot"></div>Chiffrement TLS 1.3</div>
+      <div class="badge"><div class="badge-dot"></div>Authentification 2 facteurs</div>
+      <div class="badge"><div class="badge-dot"></div>Détection d'intrusion active</div>
+      <div class="badge"><div class="badge-dot"></div>Protection Cloudflare</div>
     </div>
+  </div>
 
-    <script>
-        let attempts = 0;
+  <div class="right-panel">
+    <div class="form-container">
+      <div class="form-header">
+        <h3>Connexion</h3>
+        <p>Entrez vos identifiants pour accéder à votre compte.</p>
+      </div>
+      <div class="form-group">
+        <label for="email">Adresse e-mail</label>
+        <input type="email" id="email" placeholder="vous@example.com" />
+      </div>
+      <div class="form-group">
+        <label for="password">Mot de passe</label>
+        <input type="password" id="password" placeholder="••••••••••" />
+      </div>
+      <div class="form-options">
+        <label class="remember"><input type="checkbox"> Se souvenir de moi</label>
+        <a href="#" class="forgot">Mot de passe oublié ?</a>
+      </div>
+      <button class="btn-submit" id="submitBtn" onclick="handleLogin()">
+        <span class="btn-text">Se connecter</span>
+        <div class="spinner"></div>
+      </button>
+      <div id="msg"></div>
+      <div class="form-footer">Pas encore de compte ? <a href="register.html">Ouvrir un compte</a></div>
+    </div>
+  </div>
 
-        async function handleLogin() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+  <script>
+    let attempts = 0;
 
-            if (!email || !password) {
-                return showMsg('Veuillez remplir tous les champs.', 'error');
-            }
+    function fillLogin(email, password) {
+      document.getElementById('email').value = email;
+      document.getElementById('password').value = password;
+      document.getElementById('email').classList.add('success-input');
+      document.getElementById('password').classList.add('success-input');
+    }
 
-            attempts++;
+    async function handleLogin() {
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const btn      = document.getElementById('submitBtn');
 
-            try {
-                const res = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-                const data = await res.json();
+      document.getElementById('email').classList.remove('error-input','success-input');
+      document.getElementById('password').classList.remove('error-input','success-input');
 
-                if (data.success) {
-                    showMsg(`✅ ${data.message} Redirection...`, 'success');
-                    // Stocker l'ID utilisateur pour la page account
-                    sessionStorage.setItem('userId', data.userId);
-                    sessionStorage.setItem('userName', data.message);
-                    setTimeout(() => window.location.href = 'account.html', 1000);
-                } else {
-                    showMsg(`❌ Identifiants incorrects. Tentative n°${attempts}.`, 'error');
-                }
-            } catch (err) {
-                showMsg(`❌ Erreur réseau : ${err.message}`, 'error');
-            }
+      if (!email || !password) {
+        if (!email)    document.getElementById('email').classList.add('error-input');
+        if (!password) document.getElementById('password').classList.add('error-input');
+        return showMsg('Veuillez remplir tous les champs.', 'error');
+      }
+
+      btn.classList.add('loading'); btn.disabled = true;
+      attempts++;
+
+      try {
+        const res  = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          sessionStorage.setItem('userId',   data.userId);
+          sessionStorage.setItem('userName', data.userName);
+          showMsg(`✅ ${data.message} Redirection...`, 'success');
+          document.getElementById('email').classList.add('success-input');
+          document.getElementById('password').classList.add('success-input');
+          setTimeout(() => window.location.href = 'account.html', 900);
+        } else {
+          document.getElementById('email').classList.add('error-input');
+          document.getElementById('password').classList.add('error-input');
+          showMsg(`❌ Identifiants incorrects. (tentative n°${attempts})`, 'error');
+          btn.classList.remove('loading'); btn.disabled = false;
         }
+      } catch (err) {
+        showMsg(`❌ Erreur réseau : ${err.message}`, 'error');
+        btn.classList.remove('loading'); btn.disabled = false;
+      }
+    }
 
-        function showMsg(text, type) {
-            const msg = document.getElementById('msg');
-            msg.textContent = text;
-            msg.className = type;
-            msg.style.display = 'block';
-        }
+    function showMsg(text, type) {
+      const msg = document.getElementById('msg');
+      msg.textContent = text; msg.className = type; msg.style.display = 'block';
+    }
 
-        document.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
-    </script>
-
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+  </script>
 </body>
-
 </html>
