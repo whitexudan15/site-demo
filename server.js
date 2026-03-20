@@ -75,11 +75,16 @@ if (userCount.count === 0) {
 }
 
 // ─── FONCTION — Envoyer un événement au Guardian Python ────
+const GUARDIAN_SECRET = process.env.GUARDIAN_SECRET || '';
+
 async function sendToGuardian(event) {
     try {
         await fetch(`${GUARDIAN_URL}/event`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Guardian-Secret': GUARDIAN_SECRET
+            },
             body: JSON.stringify(event)
         });
     } catch (err) {
