@@ -2,6 +2,7 @@ const express = require('express');
 const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
+require('dotenv').config();
 
 const PORT = process.env.PORT || 3002;
 const DB_PATH = path.join(__dirname, 'data', 'bank.db');
@@ -54,20 +55,20 @@ if (userCount.count === 0) {
     `);
     const today = new Date().toISOString().split('T')[0];
     const txData = [
-        [1, 'Virement reçu — Entreprise Martin', 3200.00, 'in',  'Virement', '2025-03-15'],
-        [1, 'Loyer Appartement Paris 11e',        950.00,  'out', 'Paiement', '2025-03-01'],
-        [1, 'Amazon — Commande #112-334',          89.99,  'out', 'Paiement', '2025-02-28'],
-        [1, 'Remboursement Assurance Santé',       126.40, 'in',  'Virement', '2025-02-22'],
-        [1, 'Carrefour — Courses semaine',          67.30,  'out', 'Paiement', '2025-02-20'],
-        [1, 'Bonus annuel entreprise',            5000.00, 'in',  'Virement', '2025-01-10'],
-        [2, 'Salaire Mars',                       2500.00, 'in',  'Virement', '2025-03-10'],
-        [2, 'Netflix Abonnement',                   15.99,  'out', 'Paiement', '2025-03-05'],
-        [2, 'Prime de performance',               1200.00, 'in',  'Virement', '2025-02-15'],
-        [2, 'Loyer studio',                        750.00,  'out', 'Paiement', '2025-02-01'],
-        [3, 'Freelance Projet Web',               1800.00, 'in',  'Virement', '2025-03-12'],
-        [3, 'EDF Électricité',                     120.00,  'out', 'Paiement', '2025-03-08'],
-        [3, 'Mission consulting — Q1',            3500.00, 'in',  'Virement', '2025-02-28'],
-        [3, 'Abonnement Adobe',                     59.99,  'out', 'Paiement', '2025-02-20'],
+        [1, 'Virement reçu — Entreprise Martin', 3200.00, 'in', 'Virement', '2025-03-15'],
+        [1, 'Loyer Appartement Paris 11e', 950.00, 'out', 'Paiement', '2025-03-01'],
+        [1, 'Amazon — Commande #112-334', 89.99, 'out', 'Paiement', '2025-02-28'],
+        [1, 'Remboursement Assurance Santé', 126.40, 'in', 'Virement', '2025-02-22'],
+        [1, 'Carrefour — Courses semaine', 67.30, 'out', 'Paiement', '2025-02-20'],
+        [1, 'Bonus annuel entreprise', 5000.00, 'in', 'Virement', '2025-01-10'],
+        [2, 'Salaire Mars', 2500.00, 'in', 'Virement', '2025-03-10'],
+        [2, 'Netflix Abonnement', 15.99, 'out', 'Paiement', '2025-03-05'],
+        [2, 'Prime de performance', 1200.00, 'in', 'Virement', '2025-02-15'],
+        [2, 'Loyer studio', 750.00, 'out', 'Paiement', '2025-02-01'],
+        [3, 'Freelance Projet Web', 1800.00, 'in', 'Virement', '2025-03-12'],
+        [3, 'EDF Électricité', 120.00, 'out', 'Paiement', '2025-03-08'],
+        [3, 'Mission consulting — Q1', 3500.00, 'in', 'Virement', '2025-02-28'],
+        [3, 'Abonnement Adobe', 59.99, 'out', 'Paiement', '2025-02-20'],
     ];
     for (const tx of txData) insertTx.run(...tx);
     console.log('✅ Base de données initialisée.');
@@ -110,11 +111,11 @@ function detectBot(userAgent) {
 
 // ─── MIDDLEWARE PRINCIPAL ──────────────────────────────────
 app.use((req, res, next) => {
-    const ip      = req.headers['cf-connecting-ip']
-                 || req.headers['x-forwarded-for']
-                 || req.socket.remoteAddress
-                 || 'unknown';
-    const country   = req.headers['cf-ipcountry'] || 'XX';
+    const ip = req.headers['cf-connecting-ip']
+        || req.headers['x-forwarded-for']
+        || req.socket.remoteAddress
+        || 'unknown';
+    const country = req.headers['cf-ipcountry'] || 'XX';
     const userAgent = req.headers['user-agent'] || '';
 
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} — IP: ${ip} (${country})`);
@@ -194,7 +195,7 @@ app.get('/api/account/:id', (req, res) => {
     const user = db.prepare('SELECT id, name, email FROM users WHERE id = ?').get(userId);
     if (!user) return res.status(404).json({ success: false, message: 'Utilisateur introuvable.' });
     const transactions = db.prepare('SELECT * FROM transactions WHERE user_id = ? ORDER BY date DESC').all(userId);
-    const totalIn  = transactions.filter(t => t.type === 'in').reduce((s, t)  => s + t.amount, 0);
+    const totalIn = transactions.filter(t => t.type === 'in').reduce((s, t) => s + t.amount, 0);
     const totalOut = transactions.filter(t => t.type === 'out').reduce((s, t) => s + t.amount, 0);
     res.json({ success: true, user, balance: totalIn - totalOut, totalIn, totalOut, transactions });
 });
