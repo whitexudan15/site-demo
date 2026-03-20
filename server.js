@@ -6,9 +6,8 @@ require('dotenv').config();
 
 const PORT = process.env.PORT || 3002;
 const DB_PATH = path.join(__dirname, 'data', 'bank.db');
-
-// ─── URL du Guardian Python ────────────────────────────────
 const GUARDIAN_URL = process.env.GUARDIAN_URL || 'http://localhost:8000';
+const GUARDIAN_SECRET = process.env.GUARDIAN_SECRET || 'changeme'; // ← ajouté
 
 const app = express();
 app.use(express.json());
@@ -75,15 +74,13 @@ if (userCount.count === 0) {
 }
 
 // ─── FONCTION — Envoyer un événement au Guardian Python ────
-const GUARDIAN_SECRET = process.env.GUARDIAN_SECRET || '';
-
 async function sendToGuardian(event) {
     try {
         await fetch(`${GUARDIAN_URL}/event`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-Guardian-Secret': GUARDIAN_SECRET
+                'X-Guardian-Secret': GUARDIAN_SECRET  // ← ajouté
             },
             body: JSON.stringify(event)
         });
@@ -92,7 +89,7 @@ async function sendToGuardian(event) {
     }
 }
 
-// ─── PATTERNS SQLi/XSS ─────────────────────────────────────
+// ─── WAF PATTERNS ─────────────────────────────────────────
 const WAF_PATTERNS = [
     // SQLi
     "' OR", "OR 1=1", "' AND", "AND 1=1", "AND 1=2",
@@ -161,10 +158,12 @@ app.use((req, res, next) => {
 
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} — IP: ${ip} (${country})`);
 
+    // Bot
     if (detectBot(userAgent)) {
         sendToGuardian({ type: 'bot', ip, country, path: req.path, userAgent, timestamp: Date.now() });
     }
 
+    // WAF
     const toCheck = [
         req.query.q, req.body?.email, req.body?.password,
         req.body?.name, req.body?.label
@@ -180,7 +179,13 @@ app.use((req, res, next) => {
         });
     }
 
-    sendToGuardian({ type: 'request', ip, country, path: req.path, method: req.method, userAgent, timestamp: Date.now() });
+    // Comptage DDoS
+    sendToGuardian({
+        type: 'request', ip, country,
+        path: req.path, method: req.method,
+        userAgent, timestamp: Date.now()
+    });
+
     next();
 });
 
@@ -197,13 +202,10 @@ app.post('/api/login', async (req, res) => {
 
     const user = db.prepare('SELECT * FROM users WHERE email = ? AND password = ?').get(email, password);
 
-    // Notifier Python du résultat
+    // Notifier Python (brute force détection)
     sendToGuardian({
-        type: 'login',
-        ip,
-        country,
-        path: '/api/login',
-        email,
+        type: 'login', ip, country,
+        path: '/api/login', email,
         success: !!user,
         timestamp: Date.now()
     });
@@ -219,7 +221,6 @@ app.post('/api/login', async (req, res) => {
 app.get('/api/search', (req, res) => {
     const query = req.query.q || '';
     const userId = req.query.userId || null;
-
     let sql;
     if (userId) {
         sql = `SELECT * FROM transactions WHERE user_id = ${userId} AND (label LIKE '%${query}%' OR category LIKE '%${query}%') ORDER BY date DESC`;
@@ -242,12 +243,9 @@ app.post('/api/register', (req, res) => {
     try {
         const result = db.prepare(`INSERT INTO users (email, password, name) VALUES (?, ?, ?)`)
             .run(email, password, name);
-
-        // Crédit de bienvenue de 1000€
         const today = new Date().toISOString().split('T')[0];
         db.prepare(`INSERT INTO transactions (user_id, label, amount, type, category, date) VALUES (?, ?, ?, ?, ?, ?)`)
             .run(result.lastInsertRowid, 'Bonus de bienvenue SecureBank', 1000.00, 'in', 'Virement', today);
-
         res.json({ success: true, message: 'Compte créé avec succès !', userId: result.lastInsertRowid });
     } catch (err) {
         if (err.message.includes('UNIQUE')) {
@@ -268,54 +266,35 @@ app.get('/api/account/:id', (req, res) => {
     res.json({ success: true, user, balance: totalIn - totalOut, totalIn, totalOut, transactions });
 });
 
-/**
- * POST /api/transfer
- * Effectuer un virement vers un autre utilisateur
- */
 app.post('/api/transfer', (req, res) => {
     const { fromUserId, toEmail, amount, label } = req.body;
-
     if (!fromUserId || !toEmail || !amount || !label)
         return res.status(400).json({ success: false, message: 'Champs manquants.' });
-
     const amountNum = parseFloat(amount);
     if (isNaN(amountNum) || amountNum <= 0)
         return res.status(400).json({ success: false, message: 'Montant invalide.' });
     if (amountNum > 10000)
         return res.status(400).json({ success: false, message: 'Montant maximum : 10 000 €.' });
-
-    // Vérifier le solde de l'expéditeur
     const senderTxs = db.prepare('SELECT * FROM transactions WHERE user_id = ?').all(fromUserId);
     const balance = senderTxs.reduce((s, t) => t.type === 'in' ? s + t.amount : s - t.amount, 0);
-
     if (balance < amountNum)
         return res.status(400).json({ success: false, message: `Solde insuffisant. Solde actuel : ${balance.toFixed(2)} €` });
-
-    // Trouver le destinataire
     const recipient = db.prepare('SELECT * FROM users WHERE email = ?').get(toEmail);
     if (!recipient)
         return res.status(404).json({ success: false, message: 'Destinataire introuvable.' });
-
     const sender = db.prepare('SELECT * FROM users WHERE id = ?').get(fromUserId);
     if (recipient.id === parseInt(fromUserId))
         return res.status(400).json({ success: false, message: 'Vous ne pouvez pas vous virer à vous-même.' });
-
     const today = new Date().toISOString().split('T')[0];
     const insertTx = db.prepare(`INSERT INTO transactions (user_id, label, amount, type, category, date) VALUES (?, ?, ?, ?, ?, ?)`);
-
-    // Transaction dans une transaction SQLite atomique
-    const transfer = db.transaction(() => {
+    db.transaction(() => {
         insertTx.run(fromUserId, `Virement vers ${recipient.name} — ${label}`, amountNum, 'out', 'Virement', today);
         insertTx.run(recipient.id, `Virement reçu de ${sender.name} — ${label}`, amountNum, 'in', 'Virement', today);
-    });
-
-    transfer();
-
-    const newBalance = balance - amountNum;
+    })();
     res.json({
         success: true,
         message: `Virement de ${amountNum.toFixed(2)} € envoyé à ${recipient.name} !`,
-        newBalance
+        newBalance: balance - amountNum
     });
 });
 
